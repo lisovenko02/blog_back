@@ -3,7 +3,7 @@ import { User } from "../schemas/userSchema.js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import HttpError from "../helpers/httpError.js"
+import HttpError from "../helpers/HttpError.js"
 
 dotenv.config();
 
