@@ -1,8 +1,8 @@
 import catchAsync from "../helpers/catchAsync.js";
-import HttpError from "../helpers/httpError.js";
 import { User } from "../schemas/userSchema.js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import HttpError from "../helpers/httpError.js";
 import jwt from "jsonwebtoken"
 
 dotenv.config();
