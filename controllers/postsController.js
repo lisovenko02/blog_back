@@ -1,17 +1,21 @@
-import { Mongoose } from "mongoose";
 import HttpError from "../helpers/HttpError.js";
 import catchAsync from "../helpers/catchAsync.js";
 import { Posts } from "../schemas/postsSchema.js";
 import { User } from "../schemas/userSchema.js";
 import { Comment } from "../schemas/commentSchema.js";
+import cloudinary from "../helpers/cloudinary.js";
 
 export const createPost = catchAsync(async(req,res) => {
     const {name,_id: author} = req.user;
-
+    
     let imgURL = 'https://res.cloudinary.com/dazy48wet/image/upload/v1709419632/samples/landscapes/nature-mountains.jpg';
-
+    
     if(req.file) {
-        imgURL = req.file.path
+        const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+            allowed_formats: ["jpg", "png"],
+          });
+
+        imgURL = uploadedImage.url;
     }
 
     const result = await Posts.create({...req.body, name, author, imgURL});
@@ -82,7 +86,12 @@ export const updatePost = catchAsync(async(req,res) => {
     let imgURL;
 
     if(req.file) {
-        imgURL = req.file.path
+        const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+            allowed_formats: ["jpg", "png"],
+            folder: 'home/avatars'
+          });
+
+        imgURL = uploadedImage.url;
     }
 
     const result = await Posts.findByIdAndUpdate(id, {

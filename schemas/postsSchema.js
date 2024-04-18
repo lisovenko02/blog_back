@@ -4,11 +4,9 @@ import { Schema, model } from "mongoose";
 const postsSchema = new Schema ({
     title: {
         type: String,
-        required: [true, 'Enter the title for the post']
     },
     text: {
         type: String,
-        required: [true, 'Enter the text for the post']
     },
     imgURL: {
         type: String,
