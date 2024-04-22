@@ -18,6 +18,10 @@ const userSchema = new Schema ({
         type: String,
         required:true
     },
+    avatarURL: {
+        type: String,
+        required:true
+    },
     posts: [{
         type: Schema.Types.ObjectId,
         ref: 'posts',

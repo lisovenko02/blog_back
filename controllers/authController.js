@@ -19,9 +19,12 @@ export const register = catchAsync(async(req,res) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
+    const avatarURL = 'https://w7.pngwing.com/pngs/867/134/png-transparent-giant-panda-dog-cat-avatar-fox-animal-tag-mammal-animals-carnivoran-thumbnail.png';
+
     const newUser = await User.create({
         ...req.body,
-        password: hashPassword
+        password: hashPassword,
+        avatarURL
     });
 
     res.status(201).json({
@@ -53,6 +56,7 @@ export const login = catchAsync(async(req,res) => {
 
     res.json({
         token,
+        avatar: user.avatarURL,
         name: user.name,
         email: user.email
     })

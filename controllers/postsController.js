@@ -29,7 +29,7 @@ export const createPost = catchAsync(async(req,res) => {
 
 export const getAllPosts = catchAsync(async(req,res) => {
     const posts = await Posts.find().sort('-createdAt')
-    const popularPosts = await Posts.find().limit(5).sort('-views')
+    const popularPosts = await Posts.find().limit(5).sort('-likes')
 
     if(!posts) {
         return res.json({message: "Posts not found"})
