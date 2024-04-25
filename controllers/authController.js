@@ -39,7 +39,8 @@ export const register = catchAsync(async(req,res) => {
     res.status(201).json({
         email: newUser.email,
         name: newUser.name,
-        accessToken
+        accessToken,
+        refreshToken
     })
 });
 
@@ -70,6 +71,7 @@ export const login = catchAsync(async(req,res) => {
         name: user.name,
         email: user.email,
         accessToken,
+        refreshToken
     })
 });
 
