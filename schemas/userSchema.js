@@ -27,9 +27,12 @@ const userSchema = new Schema ({
         ref: 'posts',
         default: []
     }],
-    token: {
+    accessToken: {
         type: String
-    }
+    },
+    refreshToken: {
+        type: String
+    },
 }, { versionKey: false, timestamps: true });
 
 userSchema.post("save", handleMongooseError);

@@ -7,7 +7,7 @@ import HttpError from "../helpers/HttpError.js";
 
 dotenv.config();
 
-const { SECRET_KEY } = process.env;
+const { REFRESH_KEY, ACCESS_KEY } = process.env;
 
 export const register = catchAsync(async(req,res) => {
     const { email, password } = req.body;
@@ -20,16 +20,26 @@ export const register = catchAsync(async(req,res) => {
     const hashPassword = await bcrypt.hash(password, 10);
 
     const avatarURL = 'https://w7.pngwing.com/pngs/867/134/png-transparent-giant-panda-dog-cat-avatar-fox-animal-tag-mammal-animals-carnivoran-thumbnail.png';
-
+    
     const newUser = await User.create({
         ...req.body,
         password: hashPassword,
-        avatarURL
+        avatarURL,
     });
+
+    const payload = { id: newUser._id };
+    console.log(payload)
+
+    const accessToken = jwt.sign(payload, ACCESS_KEY, { expiresIn: '45m' });
+    const refreshToken = jwt.sign(payload, REFRESH_KEY, {expiresIn: "23h"});
+
+    await User.findByIdAndUpdate(newUser._id, {refreshToken});
+    
 
     res.status(201).json({
         email: newUser.email,
         name: newUser.name,
+        accessToken
     })
 });
 
@@ -50,21 +60,44 @@ export const login = catchAsync(async(req,res) => {
         id: user._id
     };
 
-    const token = jwt.sign(payload, SECRET_KEY, {expiresIn: "23h"});
+    const accessToken = jwt.sign(payload, ACCESS_KEY, { expiresIn: '45m' });
+    const refreshToken = jwt.sign(payload, REFRESH_KEY, {expiresIn: "23h"});
 
-    await User.findByIdAndUpdate(user._id, {token});
+    await User.findByIdAndUpdate(user._id, {refreshToken});
 
     res.json({
-        token,
         avatar: user.avatarURL,
         name: user.name,
-        email: user.email
+        email: user.email,
+        accessToken,
     })
 });
 
 export const logout = catchAsync(async(req, res) => {
     const {id} = req.user;
-    await User.findByIdAndUpdate(id, {token: ""});
+    await User.findByIdAndUpdate(id, {refreshToken: ""});
 
     res.status(204).json()
-})
+});
+
+export const refresh = catchAsync(async(req,res) => {
+    const { refreshToken: token } = req.body;
+
+    const { id } = jwt.verify(refreshToken, REFRESH_KEY);
+
+    const isExist = await User.findOne({refreshToken: token})
+    if (!isExist) {
+        throw HttpError(403, "Token invalid");
+    }
+    
+    const payload = { id };
+    const accessToken = jwt.sign(payload, ACCESS_KEY, { expiresIn: "45m" });
+    const refreshToken = jwt.sign(payload, REFRESH_KEY, { expiresIn: "23h" });
+
+    await User.findByIdAndUpdate(id, { refreshToken });
+
+    res.json({
+        accessToken,
+        refreshToken,
+      })
+});

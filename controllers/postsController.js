@@ -6,7 +6,7 @@ import { Comment } from "../schemas/commentSchema.js";
 import cloudinary from "../helpers/cloudinary.js";
 
 export const createPost = catchAsync(async(req,res) => {
-    const {name,_id: author} = req.user;
+    const {name,_id: author, avatarURL: authorAvatar} = req.user;
     
     let imgURL = 'https://res.cloudinary.com/dazy48wet/image/upload/v1709419632/samples/landscapes/nature-mountains.jpg';
     
@@ -18,7 +18,7 @@ export const createPost = catchAsync(async(req,res) => {
         imgURL = uploadedImage.url;
     }
 
-    const result = await Posts.create({...req.body, name, author, imgURL});
+    const result = await Posts.create({...req.body, name, author, imgURL, authorAvatar});
 
     await User.findByIdAndUpdate(author, {
         $push: {posts: result._id}
