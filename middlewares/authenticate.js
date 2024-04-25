@@ -2,7 +2,7 @@ import HttpError from "../helpers/HttpError.js";
 import jwt from "jsonwebtoken";
 import { User } from "../schemas/userSchema.js";
 
-const {SECRET_KEY} = process.env;
+const {REFRESH_KEY} = process.env;
 
 const authenticate = async(req,res,next) => {
  const { authorization = "" } = req.headers;
@@ -13,10 +13,10 @@ const authenticate = async(req,res,next) => {
  };
 
  try {
-    const {id} = jwt.verify(token, SECRET_KEY);
+    const {id} = jwt.verify(token, REFRESH_KEY);
     const user = await User.findById(id);
     
-    if(!user || !user.token || user.token !== token) {
+    if(!user || !user.refreshToken || user.refreshToken !== token) {
         next(HttpError(401))
     };
 

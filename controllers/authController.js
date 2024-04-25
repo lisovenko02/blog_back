@@ -28,7 +28,6 @@ export const register = catchAsync(async(req,res) => {
     });
 
     const payload = { id: newUser._id };
-    console.log(payload)
 
     const accessToken = jwt.sign(payload, ACCESS_KEY, { expiresIn: '45m' });
     const refreshToken = jwt.sign(payload, REFRESH_KEY, {expiresIn: "23h"});
@@ -81,6 +80,10 @@ export const logout = catchAsync(async(req, res) => {
 
     res.status(204).json()
 });
+
+export const getCurrent = catchAsync(async(req,res) => {
+    console.log(req.user)
+})
 
 export const refresh = catchAsync(async(req,res) => {
     const { refreshToken: token } = req.body;
