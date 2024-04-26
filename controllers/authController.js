@@ -39,7 +39,6 @@ export const register = catchAsync(async(req,res) => {
         email: newUser.email,
         name: newUser.name,
         accessToken,
-        refreshToken
     })
 });
 
@@ -70,7 +69,6 @@ export const login = catchAsync(async(req,res) => {
         name: user.name,
         email: user.email,
         accessToken,
-        refreshToken
     })
 });
 
@@ -82,7 +80,9 @@ export const logout = catchAsync(async(req, res) => {
 });
 
 export const getCurrent = catchAsync(async(req,res) => {
-    console.log(req.user)
+    const {_id, name, email, avatarURL, posts} = req.user;
+
+    res.json({_id, name, email, avatarURL, posts})
 })
 
 export const refresh = catchAsync(async(req,res) => {
@@ -103,6 +103,5 @@ export const refresh = catchAsync(async(req,res) => {
 
     res.json({
         accessToken,
-        refreshToken,
       })
 });

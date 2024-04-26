@@ -6,13 +6,13 @@ import { Posts } from "../schemas/postsSchema.js";
 export const createComment = catchAsync(async(req,res) => {
     const {comment} = req.body;
     const {id: postId} = req.params;
-    const {name, _id: author} = req.user;
+    const {name, _id: author, avatarURL: authorAvatar} = req.user;
 
     if(!comment) {
        throw HttpError(400, "Comment cannot be empty") 
     }
 
-    const result = await Comment.create({comment, name, author});
+    const result = await Comment.create({comment, name, author, authorAvatar});
 
     await Posts.findByIdAndUpdate(postId, {
         $push: {comment: result._id}
