@@ -1,5 +1,5 @@
 import express from "express";
-import { createPost, deleteOneComment, deleteOnePost, getAllPosts, getMyPosts, getOnePost, getPostComments, updatePost } from "../controllers/postsController.js";
+import { createPost, deleteOneComment, deleteOnePost, getAllPosts, getOnePost, getPostComments, getUserPosts, updatePost } from "../controllers/postsController.js";
 import authenticate from "../middlewares/authenticate.js";
 import isValidId from "../helpers/isValidId.js";
 import upload from "../middlewares/upload.js";
@@ -14,7 +14,7 @@ postsRouter.get('/:id', authenticate, isValidId , getOnePost)
 
 postsRouter.get('/comment/:id', authenticate, isValidId, getPostComments)
 
-postsRouter.get('/user/me', authenticate, getMyPosts);
+postsRouter.get('/user/:id', authenticate, getUserPosts);
 
 postsRouter.patch('/:id', authenticate, isValidId, upload.single("postIMG") , updatePost)
 

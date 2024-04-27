@@ -50,18 +50,26 @@ export const getOnePost = catchAsync(async(req,res) => {
     res.json(result)
 });
 
-export const getMyPosts = catchAsync(async(req,res) => {
-    const {_id} = req.user;
-    
-    const user = await User.findById(_id);
+export const getUserPosts = catchAsync(async(req,res) => {
+    const {id} = req.params;
+    if(id.length !== 24) {
+        throw HttpError(404, "User not found")
+
+    }
+    console.log(id.length)
+    const user = await User.findById(id);
+    if(!user) {
+        throw HttpError(404, "User not found")
+    }
 
     const postsList = await Promise.all(
         user.posts.map(post => {
             return Posts.findById(post._id)
         })
     )
+
     res.json(postsList)
-});
+})
 
 export const deleteOnePost = catchAsync(async(req,res) => {
     const {id} = req.params;
