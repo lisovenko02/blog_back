@@ -83,6 +83,24 @@ export const getCurrent = catchAsync(async(req,res) => {
     const {_id, name, email, avatarURL, posts} = req.user;
 
     res.json({_id, name, email, avatarURL, posts})
+});
+
+export const getUser = catchAsync(async(req,res) => {
+    const {id} = req.params;
+    if(id.length !== 24) {
+        throw HttpError(404, "User not found")
+    }
+
+    const user = await User.findById(id);
+    if(!user) {
+        throw HttpError(404, "User not found")
+    }
+
+    res.json({
+        name: user.name,
+        email: user.email,
+        avatar: user.avatarURL
+    })
 })
 
 export const refresh = catchAsync(async(req,res) => {

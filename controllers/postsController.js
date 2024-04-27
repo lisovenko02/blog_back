@@ -54,9 +54,8 @@ export const getUserPosts = catchAsync(async(req,res) => {
     const {id} = req.params;
     if(id.length !== 24) {
         throw HttpError(404, "User not found")
-
     }
-    console.log(id.length)
+
     const user = await User.findById(id);
     if(!user) {
         throw HttpError(404, "User not found")
