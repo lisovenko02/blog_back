@@ -38,8 +38,8 @@ export const register = catchAsync(async(req,res) => {
     res.status(201).json({
         email: newUser.email,
         name: newUser.name,
-        avatar: newUser.avatarURL,
-        userId: user._id,
+        avatarURL: newUser.avatarURL,
+        _id: user._id,
         accessToken,
     })
 });
@@ -67,10 +67,10 @@ export const login = catchAsync(async(req,res) => {
     await User.findByIdAndUpdate(user._id, {refreshToken});
 
     res.json({
-        avatar: user.avatarURL,
+        avatarURL: user.avatarURL,
         name: user.name,
         email: user.email,
-        userId: user._id,
+        _id: user._id,
         accessToken,
     })
 });
