@@ -12,7 +12,7 @@ export const createComment = catchAsync(async(req,res) => {
        throw HttpError(400, "Comment cannot be empty") 
     }
 
-    const result = await Comment.create({comment, name, author, authorAvatar});
+    const result = await Comment.create({comment, name, author, authorAvatar, postId});
 
     await Posts.findByIdAndUpdate(postId, {
         $push: {comment: result._id}

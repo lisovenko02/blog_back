@@ -71,19 +71,20 @@ export const getUserPosts = catchAsync(async(req,res) => {
 })
 
 export const deleteOnePost = catchAsync(async(req,res) => {
-    const {id} = req.params;
+    const {id: postId} = req.params;
     const {_id: userId} = req.user;
 
     // 
 
-    const deleteOnPosts = await Posts.findByIdAndDelete(id);
+    const deleteOnPosts = await Posts.findByIdAndDelete(postId);
     
     if(!deleteOnPosts) {
         throw HttpError(404, "Post not found");
     }
     await User.findByIdAndUpdate(userId, {
-        $pull: {posts: id}
+        $pull: {posts: postId}
     })
+
     res.json(deleteOnPosts)
 });
 
