@@ -16,6 +16,8 @@ export const createPost = catchAsync(async(req,res) => {
           });
 
         imgURL = uploadedImage.url;
+        console.log(imgURL);
+        console.log(req.file)
     }
 
     const result = await Posts.create({...req.body, name, author, imgURL, authorAvatar});
@@ -67,7 +69,7 @@ export const getUserPosts = catchAsync(async(req,res) => {
         })
     )
 
-    res.json(postsList)
+    res.json(postsList.reverse())
 })
 
 export const deleteOnePost = catchAsync(async(req,res) => {
@@ -92,7 +94,7 @@ export const updatePost = catchAsync(async(req,res) => {
     const {id} = req.params;
     
     let imgURL;
-
+    
     if(req.file) {
         const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
             allowed_formats: ["jpg", "png"],
