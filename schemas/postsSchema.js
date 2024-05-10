@@ -24,8 +24,7 @@ const postsSchema = new Schema ({
         required: true
     },
     likes: {
-        type: Number,
-        default: 0
+        type: Array,
     },
     views: {
         type: Number,

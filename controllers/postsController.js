@@ -16,8 +16,6 @@ export const createPost = catchAsync(async(req,res) => {
           });
 
         imgURL = uploadedImage.url;
-        console.log(imgURL);
-        console.log(req.file)
     }
 
     const result = await Posts.create({...req.body, name, author, imgURL, authorAvatar});
@@ -32,7 +30,6 @@ export const createPost = catchAsync(async(req,res) => {
 export const getAllPosts = catchAsync(async(req,res) => {
     const posts = await Posts.find().sort('-createdAt')
     const popularPosts = await Posts.find().limit(5).sort('-likes')
-
     if(!posts) {
         return res.json({message: "Posts not found"})
     }
@@ -70,6 +67,33 @@ export const getUserPosts = catchAsync(async(req,res) => {
     )
 
     res.json(postsList.reverse())
+});
+
+export const togglePostLike = catchAsync(async(req,res) => {
+    const {_id: userId} = req.user;
+    const {id: postId} = req.params;
+
+    const findPost = await Posts.findById(postId);
+    
+    if(!findPost) {
+        throw HttpError(404, "Post not found")
+    };
+    
+    if(!userId) {
+        throw HttpError(404, "User not found")
+    }
+    
+    if(!findPost.likes.includes(userId)) {
+        await Posts.findByIdAndUpdate(postId, {
+            $push: {likes: userId}
+        })
+    } else {
+        await Posts.findByIdAndUpdate(postId, {
+            $pull: {likes: userId}
+        })
+    }
+    
+    res.json(findPost.likes)
 })
 
 export const deleteOnePost = catchAsync(async(req,res) => {
