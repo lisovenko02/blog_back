@@ -1,169 +1,190 @@
-import HttpError from "../helpers/HttpError.js";
-import catchAsync from "../helpers/catchAsync.js";
-import { Posts } from "../schemas/postsSchema.js";
-import { User } from "../schemas/userSchema.js";
-import { Comment } from "../schemas/commentSchema.js";
-import cloudinary from "../helpers/cloudinary.js";
+import HttpError from '../helpers/HttpError.js'
+import catchAsync from '../helpers/catchAsync.js'
+import { Posts } from '../schemas/postsSchema.js'
+import { User } from '../schemas/userSchema.js'
+import { Comment } from '../schemas/commentSchema.js'
+import cloudinary from '../helpers/cloudinary.js'
 
-export const createPost = catchAsync(async(req,res) => {
-    const {name,_id: author, avatarURL: authorAvatar} = req.user;
-    
-    let imgURL = 'https://res.cloudinary.com/dazy48wet/image/upload/v1709419632/samples/landscapes/nature-mountains.jpg';
-    
-    if(req.file) {
-        const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
-            allowed_formats: ["jpg", "png"],
-          });
+export const createPost = catchAsync(async (req, res) => {
+  const { name, _id: author, avatarURL: authorAvatar } = req.user
 
-        imgURL = uploadedImage.url;
-    }
+  let imgURL =
+    'https://res.cloudinary.com/dazy48wet/image/upload/v1709419632/samples/landscapes/nature-mountains.jpg'
 
-    const result = await Posts.create({...req.body, name, author, imgURL, authorAvatar});
-
-    await User.findByIdAndUpdate(author, {
-        $push: {posts: result._id}
+  if (req.file) {
+    const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+      allowed_formats: ['jpg', 'png'],
     })
 
-    res.status(201).json(result);
-});
+    imgURL = uploadedImage.url
+  }
 
-export const getAllPosts = catchAsync(async(req,res) => {
-    const posts = await Posts.find().sort('-createdAt')
-    const popularPosts = await Posts.find().limit(5).sort('-likes')
-    if(!posts) {
-        return res.json({message: "Posts not found"})
-    }
+  const result = await Posts.create({
+    ...req.body,
+    name,
+    author,
+    imgURL,
+    authorAvatar,
+  })
 
-    res.json({posts, popularPosts})
-});
+  await User.findByIdAndUpdate(author, {
+    $push: { posts: result._id },
+  })
 
-export const getOnePost = catchAsync(async(req,res) => {
-    const {id} = req.params;
-
-    const result = await Posts.findById(id);
-
-    if(!result) {
-        throw HttpError(404, "Post not found");
-    }
-
-    res.json(result)
-});
-
-export const getUserPosts = catchAsync(async(req,res) => {
-    const {id} = req.params;
-    if(id.length !== 24) {
-        throw HttpError(404, "User not found")
-    }
-
-    const user = await User.findById(id);
-    if(!user) {
-        throw HttpError(404, "User not found")
-    }
-
-    const postsList = await Promise.all(
-        user.posts.map(post => {
-            return Posts.findById(post._id)
-        })
-    )
-
-    res.json(postsList.reverse())
-});
-
-export const togglePostLike = catchAsync(async(req,res) => {
-    const {_id: userId} = req.user;
-    const {id: postId} = req.params;
-
-    const findPost = await Posts.findById(postId);
-    
-    if(!findPost) {
-        throw HttpError(404, "Post not found")
-    };
-    
-    if(!userId) {
-        throw HttpError(404, "User not found")
-    }
-    
-    if(!findPost.likes.includes(userId)) {
-        await Posts.findByIdAndUpdate(postId, {
-            $push: {likes: userId}
-        })
-    } else {
-        await Posts.findByIdAndUpdate(postId, {
-            $pull: {likes: userId}
-        })
-    }
-    
-    res.json(findPost.likes)
+  res.status(201).json(result)
 })
 
-export const deleteOnePost = catchAsync(async(req,res) => {
-    const {id: postId} = req.params;
-    const {_id: userId} = req.user;
+export const getAllPosts = catchAsync(async (req, res) => {
+  const posts = await Posts.find().sort('-createdAt')
+  const popularPosts = await Posts.aggregate([
+    {
+      $addFields: {
+        likesLength: { $size: '$likes' },
+      },
+    },
+    {
+      $sort: { likesLength: -1 },
+    },
+    {
+      $limit: 5,
+    },
+  ])
+  if (!posts) {
+    return res.json({ message: 'Posts not found' })
+  }
 
-    // 
+  res.json({ posts, popularPosts })
+})
 
-    const deleteOnPosts = await Posts.findByIdAndDelete(postId);
-    
-    if(!deleteOnPosts) {
-        throw HttpError(404, "Post not found");
-    }
-    await User.findByIdAndUpdate(userId, {
-        $pull: {posts: postId}
+export const getOnePost = catchAsync(async (req, res) => {
+  const { id } = req.params
+
+  const result = await Posts.findById(id)
+
+  if (!result) {
+    throw HttpError(404, 'Post not found')
+  }
+
+  res.json(result)
+})
+
+export const getUserPosts = catchAsync(async (req, res) => {
+  const { id } = req.params
+  if (id.length !== 24) {
+    throw HttpError(404, 'User not found')
+  }
+
+  const user = await User.findById(id)
+  if (!user) {
+    throw HttpError(404, 'User not found')
+  }
+
+  const postsList = await Promise.all(
+    user.posts.map((post) => {
+      return Posts.findById(post._id)
     })
+  )
 
-    res.json(deleteOnPosts)
-});
+  res.json(postsList.reverse())
+})
 
-export const updatePost = catchAsync(async(req,res) => {
-    const {id} = req.params;
-    
-    let imgURL;
-    
-    if(req.file) {
-        const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
-            allowed_formats: ["jpg", "png"],
-            folder: 'home/avatars'
-          });
+export const togglePostLike = catchAsync(async (req, res) => {
+  const { _id: userId } = req.user
+  const { id: postId } = req.params
 
-        imgURL = uploadedImage.url;
-    }
+  const findPost = await Posts.findById(postId)
 
-    const result = await Posts.findByIdAndUpdate(id, {
-        ...req.body,
-        imgURL
-    },{ new: true });
+  if (!findPost) {
+    throw HttpError(404, 'Post not found')
+  }
 
-    res.json(result)
+  if (!userId) {
+    throw HttpError(404, 'User not found')
+  }
 
-});
-
-export const getPostComments = catchAsync(async(req,res) => {
-    const {id: postId} = req.params;
-
-    const posts = await Posts.findById(postId);
-
-    const commentList = await Promise.all(
-        posts.comment.map(post => {
-            return Comment.findById(post._id)
-        })
-    )
-    
-    res.json(commentList)
-});
-
-export const deleteOneComment = catchAsync(async(req,res) => {
-    const {postId, commentId} = req.params;
-
-    const deleteOnComment = await Comment.findByIdAndDelete(commentId);
-
-    if(!commentId) {
-        throw HttpError(404, "Comment not found");
-    };
-
+  if (!findPost.likes.includes(userId)) {
     await Posts.findByIdAndUpdate(postId, {
-        $pull: {comment: commentId}
+      $push: { likes: userId },
+    })
+  } else {
+    await Posts.findByIdAndUpdate(postId, {
+      $pull: { likes: userId },
+    })
+  }
+
+  const findPosts = await Posts.findById(postId)
+
+  res.json(findPosts.likes)
+})
+
+export const deleteOnePost = catchAsync(async (req, res) => {
+  const { id: postId } = req.params
+  const { _id: userId } = req.user
+
+  const deleteOnPosts = await Posts.findByIdAndDelete(postId)
+
+  if (!deleteOnPosts) {
+    throw HttpError(404, 'Post not found')
+  }
+  await User.findByIdAndUpdate(userId, {
+    $pull: { posts: postId },
+  })
+
+  res.json(deleteOnPosts)
+})
+
+export const updatePost = catchAsync(async (req, res) => {
+  const { id } = req.params
+
+  let imgURL
+
+  if (req.file) {
+    const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+      allowed_formats: ['jpg', 'png'],
+      folder: 'home/postImage',
     })
 
-    res.json(deleteOnComment)
+    imgURL = uploadedImage.url
+  }
 
-});
+  const result = await Posts.findByIdAndUpdate(
+    id,
+    {
+      ...req.body,
+      imgURL,
+    },
+    { new: true }
+  )
+
+  res.json(result)
+})
+
+export const getPostComments = catchAsync(async (req, res) => {
+  const { id: postId } = req.params
+
+  const posts = await Posts.findById(postId)
+
+  const commentList = await Promise.all(
+    posts.comment.map((post) => {
+      return Comment.findById(post._id)
+    })
+  )
+
+  res.json(commentList)
+})
+
+export const deleteOneComment = catchAsync(async (req, res) => {
+  const { postId, commentId } = req.params
+
+  const deleteOnComment = await Comment.findByIdAndDelete(commentId)
+
+  if (!commentId) {
+    throw HttpError(404, 'Comment not found')
+  }
+
+  await Posts.findByIdAndUpdate(postId, {
+    $pull: { comment: commentId },
+  })
+
+  res.json(deleteOnComment)
+})

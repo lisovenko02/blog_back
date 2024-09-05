@@ -1,29 +1,32 @@
-import { Schema, model } from "mongoose";
-import handleMongooseError from "../helpers/handleMongooseError.js";
+import { Schema, model } from 'mongoose'
+import handleMongooseError from '../helpers/handleMongooseError.js'
 
-const commentSchema = new Schema ({
+const commentSchema = new Schema(
+  {
     name: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
     postId: {
-        type: Schema.Types.ObjectId,
-        ref: 'post'
+      type: Schema.Types.ObjectId,
+      ref: 'post',
     },
     author: {
-        type: Schema.Types.ObjectId,
-        ref: 'user'
+      type: Schema.Types.ObjectId,
+      ref: 'user',
     },
-    authorAvatar : {
-        type: String,
-        required: true   
+    authorAvatar: {
+      type: String,
+      required: true,
     },
     comment: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
     },
-}, {versionKey: false, timestamps: true});
+  },
+  { versionKey: false, timestamps: true }
+)
 
-commentSchema.post("save", handleMongooseError);
+commentSchema.post('save', handleMongooseError)
 
 export const Comment = model('comment', commentSchema)
